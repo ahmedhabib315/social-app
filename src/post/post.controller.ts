@@ -62,7 +62,7 @@ export class PostController {
   @Post('like')
   @UseGuards(AuthGuard('jwt'))
   /**
-   * Method to Get All Posts For a Logged in User
+   * Method to Like a Post From User
    * 
    */
   async likePost(@checkActiveStatus() isActive: Boolean, @GetTokenData() user: TokenUserDto, @Body() postData: LikePostDto) {
@@ -72,7 +72,7 @@ export class PostController {
   @Post('unlike')
   @UseGuards(AuthGuard('jwt'))
   /**
-   * Method to Get All Posts For a Logged in User
+   * Method to UnLike a Post From User
    * 
    */
   async unlikePost(@checkActiveStatus() isActive: Boolean, @GetTokenData() user: TokenUserDto, @Body() postData: LikePostDto) {
