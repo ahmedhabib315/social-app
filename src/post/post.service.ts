@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'libs/src/prisma/prisma.service';
-import { CreatePostDto, UpdatePostDto, DeletePostDto, LikePostDto } from './dto/post.dto';
+import { CreatePostDto, UpdatePostDto, DeletePostDto, LikePostDto, AddCommentDto, DeleteCommentDto } from './dto/post.dto';
 import { TokenUserDto } from 'src/user/dto/user.dto';
 import { EXCEPTIONS } from 'constants/constants';
 
@@ -173,15 +173,7 @@ export class PostService {
     if (!isActive) {
       throw new UnauthorizedException(EXCEPTIONS.activateAccount);
     }
-    const post = await this.prisma.posts.findFirst({
-      where: {
-        id: postData.id,
-        isDeleted: false
-      },
-      select: {
-        likes: true
-      }
-    });
+    const post = await this.getPostDataById(postData.id);
     if (post) {
       if (addLike) {
         const likes: any = post.likes.includes(user.email) ? post.likes : [...post.likes, user.email];
@@ -210,4 +202,87 @@ export class PostService {
       throw new UnauthorizedException(EXCEPTIONS.noPostFound);
     }
   };
+
+  /**
+   * 
+   * Add Comment to an Existing post
+   * 
+   * @param isActive 
+   * @param postData 
+   * @param user 
+   * @returns 
+   */
+  async addComment(isActive: Boolean, postData: AddCommentDto, user: TokenUserDto){
+    if (!isActive) {
+      throw new UnauthorizedException(EXCEPTIONS.activateAccount);
+    }
+    const post = await this.getPostDataById(postData.id);
+    if(post){
+      const data = {
+        commentedBy: user.email,
+        comment: postData.comment,
+        postsId: postData.id,
+        isDeleted: false
+      }
+      return await this.prisma.comments.create({data});
+    }
+    else{
+      throw new UnauthorizedException(EXCEPTIONS.noPostFound);
+    }
+  }
+
+  /**
+   * 
+   * Remove own existing comment
+   * 
+   * @param isActive 
+   * @param commentData 
+   * @param user 
+   * @returns 
+   */
+  async removeComment(isActive: Boolean, commentData: DeleteCommentDto, user: TokenUserDto){
+    if (!isActive) {
+      throw new UnauthorizedException(EXCEPTIONS.activateAccount);
+    }
+    const comment = await this.getCommentDataById(commentData.id);
+    if(comment){
+      if(comment.commentedBy == user.email){
+        return await this.prisma.comments.update({
+          where:{
+            id: comment.id
+          },
+          data:{
+            isDeleted: true
+          },
+          select:{
+            comment: true,
+            postsId: true
+          }
+        });
+      }
+      else{
+        throw new UnauthorizedException('You do not have access to delete this comment')
+      }
+    }
+    else{
+      throw new UnauthorizedException('No comment found by this comment Id')
+    }
+  }
+
+
+  /**
+   * 
+   * Get Comment Data By Comment Id
+   * 
+   * @param commentId 
+   * @returns 
+   */
+  async getCommentDataById(commentId){
+    return await this.prisma.comments.findFirst({
+      where:{
+        id: commentId,
+        isDeleted: false,
+      }
+    });
+  }
 }

@@ -1,13 +1,13 @@
 import { Controller, Post, UseGuards, Body, Put, Get } from '@nestjs/common';
 import { PostService } from './post.service';
 import { AuthGuard } from '@nestjs/passport';
-import { DeletePostDto, CreatePostDto, UpdatePostDto, LikePostDto } from './dto/post.dto';
+import { DeletePostDto, CreatePostDto, UpdatePostDto, LikePostDto, AddCommentDto, DeleteCommentDto } from './dto/post.dto';
 import { GetTokenData, checkActiveStatus } from 'libs/src/decorators/user.decorator';
 import { TokenUserDto } from 'src/user/dto/user.dto';
 
 @Controller('post')
 export class PostController {
-  constructor(private readonly postService: PostService) {}
+  constructor(private readonly postService: PostService) { }
 
   @Post('create')
   @UseGuards(AuthGuard('jwt'))
@@ -77,5 +77,25 @@ export class PostController {
    */
   async unlikePost(@checkActiveStatus() isActive: Boolean, @GetTokenData() user: TokenUserDto, @Body() postData: LikePostDto) {
     return await this.postService.updateLikeOnPost(isActive, user, postData, false);
+  }
+
+  @Post('add-comment')
+  @UseGuards(AuthGuard('jwt'))
+  /**
+   * Method to Add Comment to a Post By User
+   * 
+   */
+  async addComment(@checkActiveStatus() isActive: Boolean, @GetTokenData() user: TokenUserDto, @Body() postData: AddCommentDto) {
+    return await this.postService.addComment(isActive, postData, user);
+  }
+
+  @Post('remove-comment')
+  @UseGuards(AuthGuard('jwt'))
+  /**
+   * Method to Delete Comment to a Post By User
+   * 
+   */
+  async removeComment(@checkActiveStatus() isActive: Boolean, @GetTokenData() user: TokenUserDto, @Body() postData: DeleteCommentDto) {
+    return await this.postService.removeComment(isActive, postData, user);
   }
 }
