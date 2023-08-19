@@ -22,22 +22,47 @@ model Users {
   isDeleted Boolean
   Post      Posts[]
   role      String
+  OTP       OTP[]
 
   @@map("users")
 }
 
 model Posts {
-  id        Int      @id @default(autoincrement())
+  id        Int        @id @default(autoincrement())
   title     String
   content   String?
-  image     String?
-  author    Users?   @relation(fields: [authorId], references: [email])
+  image     String?    @default("")
+  author    Users?     @relation(fields: [authorId], references: [email])
   authorId  String?
-  likes     Int      @default(0)
-  Comments  Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  likes     String[]
+  comments  Comments[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
   isDeleted Boolean
 
   @@map("posts")
+}
+
+model Comments {
+  id          Int      @id @default(autoincrement())
+  commentedBy String
+  comment     String
+  Posts       Posts?   @relation(fields: [postsId], references: [id])
+  postsId     Int?
+  createdAt   DateTime @default(now())
+  isDeleted   Boolean
+
+  @@map("comments")
+}
+
+model OTP {
+  id         Int      @id @default(autoincrement())
+  otp        Int
+  expired    Boolean
+  expiryDate DateTime
+  user       Users?   @relation(fields: [userId], references: [email])
+  userId     String?
+  createdAt  DateTime @default(now())
+
+  @@map("otps")
 }

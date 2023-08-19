@@ -26,6 +26,14 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+
+## Step by step commands to start this project
+1. npm install
+2. docker-compose up (in a seperate terminal window to keep it running throughout the project)
+3. npx prisma generate
+4. npx prisma db push
+5. npm run start/npm run start:dev (to start the project)
+
 ## Installation
 
 ```bash

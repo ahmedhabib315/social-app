@@ -1,4 +1,4 @@
-import { IsEmail, IsString, IsNotEmpty, IsAlphanumeric, IsOptional, IsNumber, IsEnum, isEmail } from "class-validator"
+import { IsEmail, IsString, IsNotEmpty, IsOptional, IsEnum, IsNumber } from "class-validator"
 import { Roles, Status } from "../enum/user.enum"
 
 export class CreateUserDto {
@@ -38,6 +38,7 @@ export class LoginUserDto {
 
 export class TokenUserDto {
   @IsEmail()
+  @IsString()
   email: string
 
   @IsEnum(Roles)
@@ -53,7 +54,7 @@ export class TokenUserDto {
   exp: number
 }
 
-export class ResetPasswordDto {
+export class ChangePasswordDto {
   @IsNotEmpty()
   oldPassword: string
 
@@ -61,10 +62,26 @@ export class ResetPasswordDto {
   newPassword: string
 }
 
-export class MailUserDto{
+export class MailUserDto {
   @IsEmail()
   email: string
 
   @IsString()
   name: string
+}
+
+export class ForgetPasswordDto {
+  @IsEmail()
+  email: string
+}
+
+export class ResetPasswordDto {
+  @IsEmail()
+  email: string
+
+  @IsNumber()
+  otp: number
+
+  @IsString()
+  newPassword
 }
