@@ -6,7 +6,7 @@ import { GetTokenData, checkActiveStatus } from 'libs/src/decorators/user.decora
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
   @Post('create')
   /**
@@ -18,11 +18,11 @@ export class UserController {
   }
 
   @Post('login')
-   /**
-   * Method to Login with an Active User
-   * 
-   */
-  async login(@Body() user: LoginUserDto){
+  /**
+  * Method to Login with an Active User
+  * 
+  */
+  async login(@Body() user: LoginUserDto) {
     return await this.userService.login(user);
   }
 
@@ -32,7 +32,7 @@ export class UserController {
    * Method to Update Data of an Active User
    * 
    */
-  async updateuser(@checkActiveStatus() isActive: Boolean, @Body() data: UpdateUserDto, @GetTokenData() user: TokenUserDto){
+  async updateuser(@checkActiveStatus() isActive: Boolean, @Body() data: UpdateUserDto, @GetTokenData() user: TokenUserDto) {
     return await this.userService.updateUser(isActive, data, user);
   }
 
@@ -42,7 +42,7 @@ export class UserController {
    * Method to Deactivate a User
    * 
    */
-  async deactivateUser(@GetTokenData() user: TokenUserDto){
+  async deactivateUser(@GetTokenData() user: TokenUserDto) {
     return await this.userService.deactivateUser(user);
   }
 
@@ -52,7 +52,7 @@ export class UserController {
    * Method to Reset password of an active User
    * 
    */
-  async resetPassword(@GetTokenData() user: TokenUserDto, @checkActiveStatus() isActive: Boolean, @Body() data: ResetPasswordDto){
+  async resetPassword(@GetTokenData() user: TokenUserDto, @checkActiveStatus() isActive: Boolean, @Body() data: ResetPasswordDto) {
     return await this.userService.resetPassword(user, isActive, data);
   }
 
@@ -63,7 +63,7 @@ export class UserController {
    * Method to Activate a user
    * 
    */
-  async activateUser(@GetTokenData() user: TokenUserDto){
+  async activateUser(@GetTokenData() user: TokenUserDto) {
     return await this.userService.activateUser(user);
   }
 }

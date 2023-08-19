@@ -28,7 +28,7 @@ export class UpdateUserDto {
   username: string
 }
 
-export class LoginUserDto{
+export class LoginUserDto {
   @IsEmail()
   email: string
 
@@ -59,4 +59,12 @@ export class ResetPasswordDto {
 
   @IsNotEmpty()
   newPassword: string
+}
+
+export class MailUserDto{
+  @IsEmail()
+  email: string
+
+  @IsString()
+  name: string
 }

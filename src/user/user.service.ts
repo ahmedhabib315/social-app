@@ -2,24 +2,25 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'libs/src/prisma/prisma.service';
 import { Status } from './enum/user.enum';
 import { JwtService } from '@nestjs/jwt';
-import { LoginUserDto, ResetPasswordDto, TokenUserDto, UpdateUserDto } from './dto/user.dto';
+import { CreateUserDto, LoginUserDto, ResetPasswordDto, TokenUserDto, UpdateUserDto } from './dto/user.dto';
+import { MailService } from 'libs/src/mail/mail.service';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prisma: PrismaService, private readonly jwtService: JwtService) { }
+  constructor(private readonly prisma: PrismaService, private readonly jwtService: JwtService, private readonly mailService: MailService) { }
 
 
   /**
    * Method to Create a New User
    * 
    */
-  async createUser(data: any) {
-    const user = await this.getUserData(data.email);
+  async createUser(userData: CreateUserDto) {
+    const user = await this.getUserData(userData.email);
     if (user) {
       throw new UnauthorizedException('Email Already in Use');
     }
-    data.status = Status.active;
-    data.isDeleted = false;
+    const data = { ...userData, status: Status.active, isDeleted: false }
+
     return await this.prisma.users.create({ data });
   }
 
@@ -158,7 +159,7 @@ export class UserService {
    * Method to Activate a user
    * 
    */
-  async activateUser(user: TokenUserDto){
+  async activateUser(user: TokenUserDto) {
     const updatedData = await this.prisma.users.update({
       where: {
         email: user.email
