@@ -184,7 +184,7 @@ export class PostService {
     });
     if (post) {
       if (addLike) {
-        const likes: any = post.likes.includes(user.email) ? post.likes : post.likes.push(user.email);
+        const likes: any = post.likes.includes(user.email) ? post.likes : [...post.likes, user.email];
         return await this.prisma.posts.update({
           where: {
             id: postData.id,
