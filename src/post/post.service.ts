@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'libs/src/prisma/prisma.service';
-import { CreatePostDto, UpdatePostDto, DeletePostDto, LikePostDto, AddCommentDto, DeleteCommentDto } from './dto/post.dto';
+import { CreatePostDto, UpdatePostDto, DeletePostDto, LikePostDto, AddCommentDto, DeleteCommentDto, EditCommentDto } from './dto/post.dto';
 import { TokenUserDto } from 'src/user/dto/user.dto';
 import { EXCEPTIONS } from 'constants/constants';
 
@@ -184,10 +184,10 @@ export class PostService {
           data: {
             likes: likes
           }
-        })
+        });
       }
       else {
-        const likes: any = post.likes.filter((email) => email != user.email)
+        const likes: any = post.likes.filter((email) => email != user.email);
         return await this.prisma.posts.update({
           where: {
             id: postData.id,
@@ -195,7 +195,7 @@ export class PostService {
           data: {
             likes: likes
           }
-        })
+        });
       }
     }
     else {
@@ -216,12 +216,12 @@ export class PostService {
     if (!isActive) {
       throw new UnauthorizedException(EXCEPTIONS.activateAccount);
     }
-    const post = await this.getPostDataById(postData.id);
+    const post = await this.getPostDataById(postData.postid);
     if(post){
       const data = {
         commentedBy: user.email,
         comment: postData.comment,
-        postsId: postData.id,
+        postsId: postData.postid,
         isDeleted: false
       }
       return await this.prisma.comments.create({data});
@@ -244,7 +244,7 @@ export class PostService {
     if (!isActive) {
       throw new UnauthorizedException(EXCEPTIONS.activateAccount);
     }
-    const comment = await this.getCommentDataById(commentData.id);
+    const comment = await this.getCommentDataById(commentData.commentid);
     if(comment){
       if(comment.commentedBy == user.email){
         return await this.prisma.comments.update({
@@ -261,11 +261,11 @@ export class PostService {
         });
       }
       else{
-        throw new UnauthorizedException('You do not have access to delete this comment')
+        throw new UnauthorizedException(EXCEPTIONS.commentDeleteAccess);
       }
     }
     else{
-      throw new UnauthorizedException('No comment found by this comment Id')
+      throw new UnauthorizedException(EXCEPTIONS.noCommentFound);
     }
   }
 
@@ -277,12 +277,51 @@ export class PostService {
    * @param commentId 
    * @returns 
    */
-  async getCommentDataById(commentId){
+  async getCommentDataById(commentId: number){
     return await this.prisma.comments.findFirst({
       where:{
         id: commentId,
         isDeleted: false,
       }
     });
+  }
+
+
+  /**
+   * 
+   * Edit Own Comment
+   * 
+   * @param isActive 
+   * @param commentData 
+   * @param user 
+   * @returns 
+   */
+  async editComment(isActive: Boolean, commentData: EditCommentDto, user: TokenUserDto){
+    if (!isActive) {
+      throw new UnauthorizedException(EXCEPTIONS.activateAccount);
+    }
+    const comment = await this.getCommentDataById(commentData.commentid);
+    if(comment){
+      if(comment.commentedBy == user.email){
+        return await this.prisma.comments.update({
+          where:{
+            id: comment.id
+          },
+          data:{
+            comment: commentData.comment
+          },
+          select:{
+            comment: true,
+            postsId: true
+          }
+        });
+      }
+      else{
+        throw new UnauthorizedException(EXCEPTIONS.commentEditAccess);
+      }
+    }
+    else{
+      throw new UnauthorizedException(EXCEPTIONS.noCommentFound);
+    }
   }
 }

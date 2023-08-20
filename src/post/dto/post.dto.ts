@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional, IsString } from "class-validator"
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator"
 
 export class CreatePostDto {
   @IsString()
@@ -40,7 +40,7 @@ export class LikePostDto {
 
 export class AddCommentDto{
   @IsNumber()
-  id: number
+  postid: number
 
   @IsString()
   comment: string
@@ -48,5 +48,14 @@ export class AddCommentDto{
 
 export class DeleteCommentDto{
   @IsNumber()
-  id: number
+  commentid: number
+}
+
+export class EditCommentDto{
+  @IsNumber()
+  commentid: number
+
+  @IsString()
+  @IsNotEmpty()
+  comment: string
 }

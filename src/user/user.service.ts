@@ -1,16 +1,15 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'libs/src/prisma/prisma.service';
 import { Status } from './enum/user.enum';
-import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto, LoginUserDto, ChangePasswordDto, TokenUserDto, UpdateUserDto, ForgetPasswordDto, ResetPasswordDto } from './dto/user.dto';
-import { MailService } from 'libs/src/mail/mail.service';
-import * as bcrypt from 'bcrypt';
-import { EXCEPTIONS, saltOrRounds } from 'constants/constants';
+import { EXCEPTIONS, digits, otpLength } from 'constants/constants';
 import { addHours } from 'date-fns';
+import { AuthService } from 'libs/src/auth/auth.service';
+
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prisma: PrismaService, private readonly jwtService: JwtService, private readonly mailService: MailService) { }
+  constructor(private readonly prisma: PrismaService, private readonly authService: AuthService) { }
 
 
   /**
@@ -22,10 +21,20 @@ export class UserService {
     if (user) {
       throw new UnauthorizedException(EXCEPTIONS.alreadyInUse);
     }
-    userData.password = await this.generateHashPassword(userData.password);
+    userData.password = await this.authService.generateHashPassword(userData.password)
     const data = { ...userData, status: Status.active, isDeleted: false }
 
-    return await this.prisma.users.create({ data });
+    return await this.prisma.users.create({ 
+      data,
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        username: true,
+        role: true,
+        createdAt: true
+      }
+    });
   }
 
   /**
@@ -35,10 +44,10 @@ export class UserService {
   async login(data: LoginUserDto) {
     const user: any = await this.getUserData(data.email);
     if (user) {
-      if (await this.checkPassword(data.password, user.password)) {
+      if (await this.authService.checkPassword(data.password, user.password)) {
         if (user.status == Status.active) {
           delete user.password;
-          const token = await this.generateToken(user)
+          const token = await this.authService.generateToken(user);
           return { ...user, token: token };
         }
         else {
@@ -76,17 +85,6 @@ export class UserService {
   }
 
   /**
-   * 
-   * Method to generate JWT token 
-   * 
-   * @param data 
-   * @returns 
-   */
-  async generateToken(data: any) {
-    return await this.jwtService.sign(data);
-  }
-
-  /**
    * Method to Update Data of an Active User
    * 
    */
@@ -120,7 +118,7 @@ export class UserService {
         role: true,
       }
     });
-    const token = await this.generateToken(updatedData);
+    const token = await this.authService.generateToken(updatedData);
     return { ...updatedData, token: token }
   }
 
@@ -133,13 +131,13 @@ export class UserService {
       throw new UnauthorizedException(EXCEPTIONS.activateAccount);
     }
     const oldUserData = await this.getUserData(user.email)
-    if (await this.checkPassword(oldUserData.password, data.oldPassword)) {
+    if (await this.authService.checkPassword(oldUserData.password, data.oldPassword)) {
       const updatedData = await this.prisma.users.update({
         where: {
           email: user.email
         },
         data: {
-          password: await this.generateHashPassword(data.newPassword)
+          password: await this.authService.generateHashPassword(data.newPassword)
         },
         select: {
           email: true,
@@ -147,7 +145,7 @@ export class UserService {
           role: true,
         }
       });
-      const token = await this.generateToken(updatedData);
+      const token = await this.authService.generateToken(updatedData);
       return { ...updatedData, token: token }
     }
     else {
@@ -173,32 +171,8 @@ export class UserService {
         role: true,
       }
     });
-    const token = await this.generateToken(updatedData);
+    const token = await this.authService.generateToken(updatedData);
     return { ...updatedData, token: token }
-  }
-
-  /**
-   * 
-   * Generate a Hash with Password to save in DB
-   * 
-   * @param password 
-   * @returns 
-   */
-  async generateHashPassword(password: string) {
-    const salt = await bcrypt.genSalt(saltOrRounds);
-    return await bcrypt.hash(password, salt);
-  }
-
-  /**
-   * 
-   * Check if the given password is correct
-   * 
-   * @param password 
-   * @param hash 
-   * @returns 
-   */
-  async checkPassword(password: string, hash: string) {
-    return await bcrypt.compare(password, hash);
   }
 
   /**
@@ -237,8 +211,6 @@ export class UserService {
    * @returns 
    */
   async generateOtp() {
-    const digits = '0123456789';
-    const otpLength = 4;
     let otp = '';
     for (let i = 1; i <= otpLength; i++) {
       const index = Math.floor(Math.random() * (digits.length));
@@ -267,7 +239,6 @@ export class UserService {
     });
 
     if (otpData) {
-
       await this.prisma.oTP.update({
         where: {
           id: otpData.id
@@ -282,7 +253,7 @@ export class UserService {
           email: data.email
         },
         data: {
-          password: await this.generateHashPassword(data.newPassword)
+          password: await this.authService.generateHashPassword(data.newPassword)
         },
         select: {
           email: true,

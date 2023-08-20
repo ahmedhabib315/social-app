@@ -33,15 +33,21 @@ export const CONSTANTS = {
 }
 
 export const EXCEPTIONS = {
-  activateAccount : "Your account is inactive. Please Activate First",
+  activateAccount: "Your account is inactive. Please Activate First",
   correctCredentials: 'Incorrect Credentials. Please login with correct credentials',
   alreadyInUse: 'Email already in use',
   noRegisteredEmail: 'Incorrect Email. This email is not associated with any registered account',
   oldPasswordIncorrect: 'Your old password is incorrect. Please enter correct password',
   incorrectOtp: 'Please enter correct otp or generate a new one',
   updateOwnPost: 'You can only update your own Posts',
-  noPostFound:'No Post Found with this Id'
+  noPostFound: 'No Post Found with this Id',
+  commentDeleteAccess: 'You do not have access to delete this comment',
+  commentEditAccess: 'You do not have access to edit this comment',
+  noCommentFound: 'No comment found by this comment Id'
 }
 
 export const saltOrRounds = 10;
 export const password = 'Social App is the Best';
+
+export const digits = '0123456789';
+export const otpLength = 4;
